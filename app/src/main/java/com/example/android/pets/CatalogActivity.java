@@ -100,13 +100,6 @@ public class CatalogActivity extends AppCompatActivity {
      * the pets database.
      */
     private void displayDatabaseInfo() {
-        // To access our database, we instantiate our subclass of SQLiteOpenHelper
-        // and pass the context, which is the current activity.
-        PetDbHelper mDbHelper = new PetDbHelper(this);
-
-        // Create and/or open a database to read from it
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
         // Define a projection that specifies which columns from the database
         // you will actually use after this query.
         String[] projection = {
@@ -125,17 +118,9 @@ public class CatalogActivity extends AppCompatActivity {
         String sortOrder =
                 PetEntry._ID + " DESC";
 
-        Cursor cursor = db.query(
-                PetEntry.TABLE_NAME,                     // The table to query
-                projection,                               // The columns to return
-                null,                                // The columns for the WHERE clause
-                null,                            // The values for the WHERE clause
-                null,                                     // don't group the rows
-                null,                                     // don't filter by row groups
-                null                                 // The sort order
-        );
+        Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI, projection, selection, selectionArgs, sortOrder);
 
-//        // Perform this raw SQL query "SELECT * FROM pets"
+       //        // Perform this raw SQL query "SELECT * FROM pets"
 //        // to get a Cursor that contains all rows from the pets table.
 //        Cursor cursor = db.rawQuery("SELECT * FROM " + PetEntry.TABLE_NAME, null);
         TextView displayView = (TextView) findViewById(R.id.text_view_pet);
