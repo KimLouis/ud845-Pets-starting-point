@@ -18,7 +18,7 @@ package com.example.android.pets;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -28,14 +28,11 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.example.android.pets.data.PetContract.PetEntry;
-import com.example.android.pets.data.PetDbHelper;
 
 /**
  * Displays list of pets that were entered and stored in the app.
  */
 public class CatalogActivity extends AppCompatActivity {
-    // create a database for this application
-    private PetDbHelper mDbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,14 +48,6 @@ public class CatalogActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
-
-        // To access our database, we instantiate our subclass of SQLiteOpenHelper
-        // and pass the context, which is the current activity.
-        mDbHelper = new PetDbHelper(this);
-
-        displayDatabaseInfo();
-
     }
 
     @Override
@@ -84,7 +73,6 @@ public class CatalogActivity extends AppCompatActivity {
                 // Do nothing for now
                 insertPet();
                 displayDatabaseInfo();
-
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
@@ -110,17 +98,15 @@ public class CatalogActivity extends AppCompatActivity {
                 PetEntry.COLUMN_PET_WEIGHT
         };
 
-        // Filter results WHERE "title" = 'My Title'
-        String selection = PetEntry.COLUMN_PET_NAME + " = ?";
-        String[] selectionArgs = {"My Title"};
+        Cursor cursor = getContentResolver().query(
+                PetEntry.CONTENT_URI,
+                projection,
+                null,
+                null,
+                null
+        );
 
-        // How you want the results sorted in the resulting Cursor
-        String sortOrder =
-                PetEntry._ID + " DESC";
-
-        Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI, projection, selection, selectionArgs, sortOrder);
-
-       //        // Perform this raw SQL query "SELECT * FROM pets"
+        //        // Perform this raw SQL query "SELECT * FROM pets"
 //        // to get a Cursor that contains all rows from the pets table.
 //        Cursor cursor = db.rawQuery("SELECT * FROM " + PetEntry.TABLE_NAME, null);
         TextView displayView = (TextView) findViewById(R.id.text_view_pet);
@@ -149,7 +135,7 @@ public class CatalogActivity extends AppCompatActivity {
                 String currentName = cursor.getString(nameColumnIndex);
                 String currentBreed = cursor.getString(breedColumnIndex);
                 int currentGender = cursor.getInt(genderColumnIndex);
-                String currentWeight = cursor.getString(weightColumnIndex);
+                int currentWeight = cursor.getInt(weightColumnIndex);
 
                 displayView.append("\n" + currentID + "-"
                         + currentName + "-"
@@ -166,8 +152,6 @@ public class CatalogActivity extends AppCompatActivity {
     }
 
     private void insertPet() {
-        // Gets the data repository in write mode
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
         // Create a new map of values, where column names are the keys
         ContentValues values = new ContentValues();
@@ -177,8 +161,7 @@ public class CatalogActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_PET_GENDER, PetEntry.GENDER_MALE);
         values.put(PetEntry.COLUMN_PET_WEIGHT, 7);
 
-        // Insert the new row, returning the primary key value of the new row
-        long newRowId = db.insert(PetEntry.TABLE_NAME, null, values);
+        Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
 
     }
 }
