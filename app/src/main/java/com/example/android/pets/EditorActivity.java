@@ -44,30 +44,13 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     private static final int EXISTING_PET_LOADER = 0;
 
-    /**
-     * EditText field to enter the pet's name
-     */
+    private Uri mCurrentPetUri;
+
     private EditText mNameEditText;
-
-    /**
-     * EditText field to enter the pet's breed
-     */
     private EditText mBreedEditText;
-
-    /**
-     * EditText field to enter the pet's weight
-     */
     private EditText mWeightEditText;
-
-    /**
-     * EditText field to enter the pet's gender
-     */
     private Spinner mGenderSpinner;
 
-    /**
-     * Gender of the pet. The possible values are:
-     * 0 for unknown gender, 1 for male, 2 for female.
-     */
     private int mGender = PetEntry.GENDER_UNKNOWN;
 
     @Override
@@ -76,9 +59,9 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         setContentView(R.layout.activity_editor);
 
         Intent intent = getIntent();
-        Uri currentUri = intent.getData();
+        mCurrentPetUri = intent.getData();
 
-        if (currentUri == null) {
+        if (mCurrentPetUri == null) {
             setTitle(getString(R.string.editor_activity_title_new_pet));
         } else {
             setTitle(getString(R.string.editor_activity_title_edit_pet));
@@ -110,7 +93,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
                 // Do nothing for now
-                insertPet();
+                savePet();
                 finish();
                 return true;
             // Respond to a click on the "Delete" menu option
@@ -165,7 +148,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         });
     }
 
-    private void insertPet() {
+    private void savePet() {
         String nameString = mNameEditText.getText().toString().trim();
         String breedString = mBreedEditText.getText().toString().trim();
         String weightString = mWeightEditText.getText().toString().trim();
@@ -178,18 +161,37 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         values.put(PetEntry.COLUMN_PET_GENDER, mGender);
         values.put(PetEntry.COLUMN_PET_WEIGHT, weight);
 
-        // Insert the new row, returning the primary key value of the new row
-        Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
-
-        // Show a toast message depending on whether or not the insertion was successful
-        if (newUri == null) {
-            // If the new content URI is null, then there was an error with insertion.
-            Toast.makeText(this, getString(R.string.editor_insert_pet_failed),
-                    Toast.LENGTH_SHORT).show();
+        if (mCurrentPetUri == null) {
+            // Creating a new Pet from fab
+            Uri newUri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
+            // if failed, the Resolver wont return a newUri
+            if (newUri == null) {
+                Toast.makeText(
+                        this,
+                        getString(R.string.editor_insert_pet_failed),
+                        Toast.LENGTH_SHORT);
+            } else {
+                Toast.makeText(
+                        this,
+                        getString(R.string.editor_insert_pet_successful),
+                        Toast.LENGTH_SHORT);
+            }
         } else {
-            // Otherwise, the insertion was successful and we can display a toast.
-            Toast.makeText(this, getString(R.string.editor_insert_pet_successful),
-                    Toast.LENGTH_SHORT).show();
+            // editing existing pet in list
+            int rowsAffected = getContentResolver().update(PetEntry.CONTENT_URI, values, null, null);
+
+            if (rowsAffected == 0) {
+                Toast.makeText(
+                        this,
+                        getString(R.string.editor_update_pet_failed),
+                        Toast.LENGTH_SHORT);
+            } else {
+                Toast.makeText(
+                        this,
+                        getString(R.string.editor_update_pet_successful),
+                        Toast.LENGTH_SHORT);
+            }
+
         }
     }
 
