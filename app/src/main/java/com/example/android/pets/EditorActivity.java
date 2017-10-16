@@ -40,7 +40,8 @@ import com.example.android.pets.data.PetContract.PetEntry;
 /**
  * Allows user to create a new pet or edit an existing one.
  */
-public class EditorActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class EditorActivity extends AppCompatActivity
+        implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int EXISTING_PET_LOADER = 0;
 
@@ -152,7 +153,19 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         String nameString = mNameEditText.getText().toString().trim();
         String breedString = mBreedEditText.getText().toString().trim();
         String weightString = mWeightEditText.getText().toString().trim();
-        int weight = Integer.parseInt(weightString);
+        int weight = 0;
+        if (!TextUtils.isEmpty(weightString)) {
+            weight = Integer.parseInt(weightString);
+        }
+
+        // 如果没有进行任何操作，则直接退出
+        if (mCurrentPetUri == null
+                && TextUtils.isEmpty(nameString)
+                && TextUtils.isEmpty(breedString)
+                && TextUtils.isEmpty(weightString)
+                && mGender == PetEntry.GENDER_UNKNOWN) {
+            return;
+        }
 
         // Create a new map of values, where column names are the keys
         ContentValues values = new ContentValues();
