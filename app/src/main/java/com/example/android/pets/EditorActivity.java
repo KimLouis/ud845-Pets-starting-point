@@ -79,6 +79,8 @@ public class EditorActivity extends AppCompatActivity
         if (mCurrentPetUri == null) {
             // 如果传入的URI不包含id，则是新建模式
             setTitle(getString(R.string.editor_activity_title_new_pet));
+            // 当前不存在宠物，因此禁用菜单(可在程序运行时动态禁用)
+            invalidateOptionsMenu();
         } else {
             // 如果传入的URI包含id，则是编辑模式
             setTitle(getString(R.string.editor_activity_title_edit_pet));
@@ -361,5 +363,17 @@ public class EditorActivity extends AppCompatActivity
 
         // Show dialog that there are unsaved changes
         showUnsavedChangesDialog(discardButtonClickListener);
+    }
+
+    // 准备菜单选项
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        // If this is a new pet, hide the "Delete" menu item.
+        if (mCurrentPetUri == null) {
+            MenuItem menuItem = menu.findItem(R.id.action_delete);
+            menuItem.setVisible(false);
+        }
+        return true;
     }
 }
